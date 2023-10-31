@@ -132,13 +132,13 @@
       return this.adapter.newRequest("/" + key);
     }
     "delete"(key) {
-      return this.cache.delete(this.request(key), this.cacheQueryOptions);
+      return this.cache.delete(this.request(key), this.cacheQueryOptions).catch((e) => console.log(e));
     }
     keys() {
       return this.cache.keys().then((requests) => requests.map((req) => req.url.slice(1)));
     }
     read(key) {
-      return this.cache.match(this.request(key), this.cacheQueryOptions).then((res) => {
+      return this.cache.match(this.request(key), this.cacheQueryOptions).catch((e) => console.log(e)).then((res) => {
         if (res === void 0) {
           return Promise.reject(new NotFound(this.name, key));
         }
@@ -146,7 +146,7 @@
       });
     }
     write(key, value) {
-      return this.cache.put(this.request(key), this.adapter.newResponse(JSON.stringify(value)));
+      return this.cache.put(this.request(key), this.adapter.newResponse(JSON.stringify(value))).catch((e) => console.log(e));
     }
   };
 
@@ -317,7 +317,7 @@ ${error.stack}`;
       const cache = await this.cache;
       const meta = await this.metadata;
       const req = this.adapter.newRequest(url);
-      const res = await cache.match(req, this.config.cacheQueryOptions);
+      const res = await cache.match(req, this.config.cacheQueryOptions).catch((e) => console.log(e));
       if (res === void 0) {
         return UpdateCacheStatus.NOT_CACHED;
       }
@@ -343,7 +343,7 @@ ${error.stack}`;
         const cache = await this.cache;
         let cachedResponse;
         try {
-          cachedResponse = await cache.match(req, this.config.cacheQueryOptions);
+          cachedResponse = await cache.match(req, this.config.cacheQueryOptions).catch((e) => console.log(e));
         } catch (error) {
           throw new SwCriticalError(`Cache is throwing while looking for a match: ${error}`);
         }
@@ -408,7 +408,7 @@ ${error.stack}`;
       const cache = await this.cache;
       const metaTable = await this.metadata;
       const request = this.adapter.newRequest(url);
-      const response = await cache.match(request, this.config.cacheQueryOptions);
+      const response = await cache.match(request, this.config.cacheQueryOptions).catch((e) => console.log(e));
       if (response === void 0) {
         return null;
       }
@@ -436,7 +436,7 @@ ${error.stack}`;
         }
         try {
           const cache = await this.cache;
-          await cache.put(req, res.clone());
+          await cache.put(req, res.clone()).catch((e) => console.log(e));
           if (!this.hashes.has(this.adapter.normalizeUrl(req.url))) {
             const meta = { ts: this.adapter.time, used };
             const metaTable = await this.metadata;
@@ -494,7 +494,7 @@ ${error.stack}`;
         const hash = this.hashes.get(url);
         const res = await updateFrom.lookupResourceWithHash(url, hash);
         if (res !== null) {
-          await cache.put(req, res);
+          await cache.put(req, res).catch((e) => console.log(e));
           return true;
         }
       }
@@ -525,7 +525,7 @@ ${error.stack}`;
         const req = this.adapter.newRequest(url);
         let alreadyCached = false;
         try {
-          alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
+          alreadyCached = await cache.match(req, this.config.cacheQueryOptions).catch((e) => console.log(e)) !== void 0;
         } catch (error) {
           throw new SwCriticalError(`Cache is throwing while looking for a match in a PrefetchAssetGroup: ${error}`);
         }
@@ -542,7 +542,7 @@ ${error.stack}`;
         await (await updateFrom.previouslyCachedResources()).filter((url) => this.urls.indexOf(url) !== -1 || this.patterns.some((pattern) => pattern.test(url))).reduce(async (previous, url) => {
           await previous;
           const req = this.adapter.newRequest(url);
-          const alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
+          const alreadyCached = await cache.match(req, this.config.cacheQueryOptions).catch((e) => console.log(e)) !== void 0;
           if (alreadyCached) {
             return;
           }
@@ -550,7 +550,7 @@ ${error.stack}`;
           if (res === null || res.metadata === void 0) {
             return;
           }
-          await cache.put(req, res.response);
+          await cache.put(req, res.response).catch((e) => console.log(e));
           await metaTable.write(req.url, __spreadProps(__spreadValues({}, res.metadata), { used: false }));
         }, Promise.resolve());
       }
@@ -567,7 +567,7 @@ ${error.stack}`;
         const req = this.adapter.newRequest(url);
         let alreadyCached = false;
         try {
-          alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
+          alreadyCached = await cache.match(req, this.config.cacheQueryOptions).catch((e) => console.log(e)) !== void 0;
         } catch (error) {
           throw new SwCriticalError(`Cache is throwing while looking for a match in a LazyAssetGroup: ${error}`);
         }
@@ -812,7 +812,7 @@ ${error.stack}`;
     }
     async loadFromCache(req, lru) {
       const cache = await this.cache;
-      let res = await cache.match(req, this.config.cacheQueryOptions);
+      let res = await cache.match(req, this.config.cacheQueryOptions).catch((e) => console.log(e));
       if (res !== void 0) {
         try {
           const ageTable = await this.ageTable;
